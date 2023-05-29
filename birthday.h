@@ -8,10 +8,12 @@
 
 namespace solution {
 struct Birthday {
-    Date date;
-    FullName full_name;    
-};
-}
+  bool operator<(const Birthday& other);
+  bool operator==(const Birthday& other);
 
+  Date date;
+  FullName full_name;
+};
+}  // namespace solution
 
 #endif  // BIRTHDAY_H

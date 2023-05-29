@@ -5,10 +5,13 @@
 
 namespace solution {
 struct DateTime : public Date {
-    int32_t hour;
-    int32_t minute;
-    int32_t second;
+  bool operator<(const DateTime& other);
+  bool operator==(const DateTime& other);
+
+  int32_t hours;
+  int32_t minutes;
+  int32_t seconds;
 };
-}
+}  // namespace solution
 
 #endif  // DATE_TIME_H

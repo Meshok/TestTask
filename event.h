@@ -7,10 +7,10 @@
 
 namespace solution {
 struct Event {
-    DateTime created;
-    Date expires;
-    std::string description;
+  DateTime created;
+  Date expires;
+  std::string description;
 };
-}
+}  // namespace solution
 
 #endif  // EVENT_H
