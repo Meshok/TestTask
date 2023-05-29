@@ -8,7 +8,8 @@
 
 namespace solution {
 class DailyPlanner {
-  std::set<Birthday> dirthdays;
+ private:
+  std::set<Birthday> birthdays;
 };
 }  // namespace solution
 

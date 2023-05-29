@@ -1,19 +1,19 @@
 #include "date.h"
 
-#include <array>
+#include <tuple>
 
 namespace solution {
 
 bool Date::operator<(const Date& other) {
-  std::array<int32_t, 3> this_date = {year, month, day};
-  std::array<int32_t, 3> other_date = {other.year, other.month, other.day};
+  auto this_date = std::tie(year, month, day);
+  auto other_date = std::tie(other.year, other.month, other.day);
 
   return this_date < other_date;
 }
 
 bool Date::operator==(const Date& other) {
-  std::array<int32_t, 3> this_date = {year, month, day};
-  std::array<int32_t, 3> other_date = {other.year, other.month, other.day};
+  auto this_date = std::tie(year, month, day);
+  auto other_date = std::tie(other.year, other.month, other.day);
 
   return this_date == other_date;
 }

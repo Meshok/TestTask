@@ -5,6 +5,9 @@
 
 namespace solution {
 struct FullName {
+  bool operator<(const FullName& other);
+  bool operator==(const FullName& other);
+
   std::string surname;
   std::string name;
   std::string patronymic;
