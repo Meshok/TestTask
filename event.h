@@ -7,7 +7,12 @@
 
 namespace solution {
 struct Event {
-  Event(Date&& expires_, std::string&& description_);
+ public:
+  Event(Date&& expires_, std::string&& description_)
+      : created(DateTime::now()),
+        expires(expires_),
+        description(description_) {}
+
   DateTime created;
   Date expires;
   std::string description;

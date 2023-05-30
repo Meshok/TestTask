@@ -21,13 +21,18 @@ struct DateTime : public Date {
 
   static DateTime now();
 
-  bool operator<(const DateTime& other);
-  bool operator==(const DateTime& other);
+  bool operator<(const DateTime& other) const;
+  bool operator==(const DateTime& other) const;
+
+  std::string TimeToString() const;
 
   int32_t hours;
   int32_t minutes;
   int32_t seconds;
 };
+
+std::ostream& operator<<(std::ostream& os, const DateTime& date);
+
 }  // namespace solution
 
 #endif  // DATE_TIME_H

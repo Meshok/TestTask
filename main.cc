@@ -1,17 +1,22 @@
 #include <chrono>
 #include <ctime>
 #include <iostream>
+#include <set>
+
+#include "birthday.h"
 
 int main(void) {
-  auto t = std::chrono::high_resolution_clock::now();
-  auto tnow = std::chrono::high_resolution_clock::to_time_t(t);
-  tm some_var = *std::localtime(&tnow);
-  std::cout << some_var.tm_year + 1900 << " years\n";
-  std::cout << some_var.tm_mon + 1 << " months\n";
-  std::cout << some_var.tm_mday << " days\n";
-  std::cout << some_var.tm_hour << " hours\n";
-  std::cout << some_var.tm_min << " minutes\n";
-  std::cout << some_var.tm_sec << " seconds\n";
+  using namespace solution;
+  std::set<Birthday> birthdays;
+  for (size_t i = 0; i < 2; ++i) {
+    birthdays.insert(Birthday::ReadFromInput());
+    std::cout << "-----------------\n";
+  }
+
+  for (auto& day : birthdays) {
+    std::cout << day;
+    std::cout << "-----------------\n";
+  }
 
   return 0;
 }
