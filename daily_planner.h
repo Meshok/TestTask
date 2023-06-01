@@ -3,6 +3,7 @@
 
 #include <map>
 #include <set>
+#include <thread>
 
 #include "birthday.h"
 #include "event.h"
@@ -10,6 +11,7 @@
 namespace solution {
 class DailyPlanner {
  public:
+  DailyPlanner();
   int exec();
 
  private:
@@ -19,6 +21,10 @@ class DailyPlanner {
   void see_event();
   void see_birthday();
 
+  void process_new_day();
+  void process_events();
+  void process_birthdays();
+
   void separate_output(char symbol = '-');
 
   std::set<Event> events;
@@ -27,6 +33,9 @@ class DailyPlanner {
   std::multimap<Date, std::set<Birthday>::iterator> birthdayByDate;
   std::multimap<Date, std::set<Event>::iterator> eventByExpirationDate;
   std::multimap<Date, std::set<Event>::iterator> eventByCreationDate;
+
+  std::set<Event>::iterator nextEvent;
+  std::set<Birthday>::iterator nextBirthday;
 };
 }  // namespace solution
 

@@ -1,8 +1,16 @@
 #include "daily_planner.h"
 
+#include <chrono>
 #include <iostream>
 
 namespace solution {
+
+DailyPlanner::DailyPlanner() {
+  nextEvent = events.end();
+  nextBirthday = birthdays.end();
+  auto t = std::thread(process_new_day, this);
+  t.detach();
+}
 
 int DailyPlanner::exec() {
   while (true) {
@@ -171,6 +179,73 @@ void DailyPlanner::separate_output(char symbol) {
   }
 
   std::cout << '\n';
+}
+
+void DailyPlanner::process_new_day() {
+  using namespace std::chrono;
+  while (true) {
+    DateTime time = DateTime::now();
+    if (time.hours == 0 && time.minutes < 1) {
+      process_events();
+      process_birthdays();
+    }
+    time = DateTime::now();
+
+    seconds sleep_time =
+        seconds(60u * (60 * (24 - time.hours) - time.minutes) - time.seconds);
+    std::this_thread::sleep_for(sleep_time);
+  }
+}
+
+void DailyPlanner::process_events() {
+  if (events.empty()) {
+    return;
+  }
+
+  auto current = nextEvent;
+  auto next = current;
+  Date today = DateTime::now();
+  for (; next != events.end() && next->expires < today; ++next) {
+  }
+
+  for (; current != next; ++current) {
+    size_t count = eventByCreationDate.count(current->created);
+    auto it = eventByCreationDate.find(current->created);
+    for (size_t i = 0; i < count && !(*(it->second) == *current); ++i, ++it) {
+    }
+    eventByCreationDate.erase(it);
+    count = eventByExpirationDate.count(current->expires);
+    it = eventByExpirationDate.find(current->expires);
+    for (size_t i = 0; i < count && !(*(it->second) == *current); ++i, ++it) {
+    }
+    eventByExpirationDate.erase(it);
+    events.erase(current);
+  }
+  nextEvent = next;
+}
+
+void DailyPlanner::process_birthdays() {
+  if (birthdays.empty()) {
+    return;
+  }
+
+  auto next = nextBirthday;
+  Date today = DateTime::now();
+  auto eq = [&today](const Date& date) -> bool {
+    return date.month == today.month && date.day == today.day;
+  };
+  for (; next != birthdays.end() && eq(next->date); ++next) {
+    next->age = today.year - next->date.year;
+  }
+
+  if (next == birthdays.end()) {
+    next = birthdays.begin();
+    for (; next != nextBirthday && eq(next->date); ++next) {
+      next->age = today.year - next->date.year;
+    }
+  }
+
+  nextBirthday = next;
 }
 
 }  // namespace solution

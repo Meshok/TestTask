@@ -16,6 +16,7 @@ struct Birthday {
 
   Date date;
   FullName full_name;
+  mutable int age;
 };
 
 std::ostream& operator<<(std::ostream& os, const Birthday& birthday);
