@@ -6,10 +6,11 @@
 namespace solution {
 
 Event Event::ReadFromInput() {
-  Date expires_ = Date::ReadFromInput();
   std::string description_;
   std::cout << "Description: ";
   std::getline(std::cin, description_);
+  std::cout << "Enter expiration date:\n";
+  Date expires_ = Date::ReadFromInput();
   return Event(expires_, description_);
 }
 

@@ -28,10 +28,16 @@ void DailyPlanner::user_add() {
     std::cout << "Enter \"event\" or \"birthday\": ";
     std::getline(std::cin, user_input);
     if (user_input == "event") {
-      events.insert(Event::ReadFromInput());
+      auto record = Event::ReadFromInput();
+      auto insertion_result = events.insert(record);
+      if (insertion_result.second) {
+        eventByDate.insert(make_pair(record.expires, insertion_result.first));
+      } else {
+        std::cout << "Error: this record already exist.\n";
+      }
       break;
     } else if (user_input == "birthday") {
-      Birthday record = Birthday::ReadFromInput();
+      auto record = Birthday::ReadFromInput();
       auto insertion_result = birthdays.insert(record);
       if (insertion_result.second) {
         birthdayByName.insert(
@@ -48,7 +54,7 @@ void DailyPlanner::user_add() {
 void DailyPlanner::user_see() {
   std::string user_input;
   while (true) {
-    std::cout << "Enter \"event\" / \"birthday\" \"back\": ";
+    std::cout << "Enter \"event\" / \"birthday\" / \"back\": ";
     std::getline(std::cin, user_input);
     if (user_input == "event") {
       see_event();
@@ -63,12 +69,35 @@ void DailyPlanner::user_see() {
 }
 
 void DailyPlanner::see_event() {
-  separate_output('+');
   if (!events.empty()) {
-    std::cout << "Events:\n";
-    for (auto& event : events) {
-      std::cout << event;
-      separate_output();
+    std::string user_input;
+    while (true) {
+      std::cout << "Enter \"all\" / \"by date\": ";
+      std::getline(std::cin, user_input);
+      if (user_input == "all") {
+        separate_output('+');
+        std::cout << "Events:\n";
+        for (auto& event : events) {
+          std::cout << event;
+          separate_output();
+        }
+        break;
+      } else if (user_input == "by date") {
+        Date date = Date::ReadFromInput();
+        separate_output('+');
+        auto record_count = eventByDate.count(date);
+        if (record_count > 0) {
+          auto it = eventByDate.find(date);
+          for (size_t i = 0; i < record_count; ++i, ++it) {
+            std::cout << *(it->second);
+            separate_output();
+          }
+        } else {
+          std::cout << "Error: event not found.\n";
+          separate_output();
+        }
+        break;
+      }
     }
   } else {
     std::cout << "Event's list is empty\n";
@@ -101,9 +130,9 @@ void DailyPlanner::see_birthday() {
             separate_output();
           }
         } else {
-          std::cout << "Error: birthdate not found.\n";
+          std::cout << "Error: birthday not found.\n";
+          separate_output();
         }
-        separate_output();
         break;
       } else if (user_input == "by name") {
         FullName full_name = FullName::ReadFromInput();

@@ -25,6 +25,7 @@ class DailyPlanner {
   std::set<Birthday> birthdays;
   std::multimap<FullName, std::set<Birthday>::iterator> birthdayByName;
   std::multimap<Date, std::set<Birthday>::iterator> birthdayByDate;
+  std::multimap<Date, std::set<Event>::iterator> eventByDate;
 };
 }  // namespace solution
 
