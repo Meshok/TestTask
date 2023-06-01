@@ -31,7 +31,10 @@ void DailyPlanner::user_add() {
       auto record = Event::ReadFromInput();
       auto insertion_result = events.insert(record);
       if (insertion_result.second) {
-        eventByDate.insert(make_pair(record.expires, insertion_result.first));
+        eventByExpirationDate.insert(
+            make_pair(record.expires, insertion_result.first));
+        eventByCreationDate.insert(make_pair(static_cast<Date>(record.created),
+                                             insertion_result.first));
       } else {
         std::cout << "Error: this record already exist.\n";
       }
@@ -72,7 +75,7 @@ void DailyPlanner::see_event() {
   if (!events.empty()) {
     std::string user_input;
     while (true) {
-      std::cout << "Enter \"all\" / \"by date\": ";
+      std::cout << "Enter \"all\" / \"by date\" / \"by creation\": ";
       std::getline(std::cin, user_input);
       if (user_input == "all") {
         separate_output('+');
@@ -82,12 +85,17 @@ void DailyPlanner::see_event() {
           separate_output();
         }
         break;
-      } else if (user_input == "by date") {
+      } else if (user_input == "by date" || user_input == "by creation") {
+        bool byExpirationDate = user_input == "by date";
+        auto& dateMap =
+            byExpirationDate ? eventByExpirationDate : eventByCreationDate;
+        std::cout << "Enter " << (byExpirationDate ? "expiration" : "creation")
+                  << " date:\n";
         Date date = Date::ReadFromInput();
         separate_output('+');
-        auto record_count = eventByDate.count(date);
+        auto record_count = dateMap.count(date);
         if (record_count > 0) {
-          auto it = eventByDate.find(date);
+          auto it = dateMap.find(date);
           for (size_t i = 0; i < record_count; ++i, ++it) {
             std::cout << *(it->second);
             separate_output();
