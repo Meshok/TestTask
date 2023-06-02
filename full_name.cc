@@ -12,6 +12,9 @@ FullName FullName::ReadFromInput() {
   std::getline(std::cin, full_name.name);
   std::cout << "Patronymic: ";
   std::getline(std::cin, full_name.patronymic);
+  if (full_name.surname.size() == 0 || full_name.name.size() == 0) {
+    throw InvalidFullNameException();
+  }
   return full_name;
 }
 

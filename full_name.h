@@ -18,6 +18,13 @@ struct FullName {
 
 std::ostream& operator<<(std::ostream& os, const FullName& full_name);
 
+class InvalidFullNameException : public std::exception {
+ public:
+  const char* what() const noexcept override {
+    return "Wrong name or surname!";
+  }
+};
+
 }  // namespace solution
 
 #endif  // FULL_NAME_H

@@ -3,14 +3,29 @@
 #include <iostream>
 #include <tuple>
 
+#include "bad_input.h"
+
 namespace solution {
 
 Event Event::ReadFromInput() {
   std::string description_;
+  Date expires_;
   std::cout << "Description: ";
   std::getline(std::cin, description_);
   std::cout << "Enter expiration date:\n";
-  Date expires_ = Date::ReadFromInput();
+  try {
+    expires_ = Date::ReadFromInput();
+    Date today = DateTime::now();
+    if (expires_ < today || description_.size() == 0) {
+      std::cerr
+          << "Wrong input: description is empty or event already expired\n";
+      throw BadInputException();
+    }
+  } catch (const InvalidDateException& e) {
+    std::cerr << e.what() << '\n';
+    throw BadInputException();
+  }
+
   return Event(expires_, description_);
 }
 

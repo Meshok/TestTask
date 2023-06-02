@@ -11,6 +11,7 @@ namespace solution {
 struct Birthday {
   bool operator<(const Birthday& other) const;
   bool operator==(const Birthday& other) const;
+  bool operator<=(const Birthday& other) const;
 
   static Birthday ReadFromInput();
 

@@ -2,6 +2,7 @@
 #define DAILY_PLANNER_H
 
 #include <map>
+#include <mutex>
 #include <set>
 #include <thread>
 
@@ -29,12 +30,14 @@ class DailyPlanner {
 
   std::set<Event> events;
   std::set<Birthday> birthdays;
+  std::mutex event_mutex;
+  std::mutex birthday_mutex;
+
   std::multimap<FullName, std::set<Birthday>::iterator> birthdayByName;
   std::multimap<Date, std::set<Birthday>::iterator> birthdayByDate;
   std::multimap<Date, std::set<Event>::iterator> eventByExpirationDate;
   std::multimap<Date, std::set<Event>::iterator> eventByCreationDate;
 
-  std::set<Event>::iterator nextEvent;
   std::set<Birthday>::iterator nextBirthday;
 };
 }  // namespace solution

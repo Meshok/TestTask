@@ -3,6 +3,8 @@
 #include <array>
 #include <tuple>
 
+#include "bad_input.h"
+
 namespace solution {
 
 bool Date::IsValid() const {
@@ -38,16 +40,19 @@ bool Date::operator==(const Date& other) const {
 Date Date::ReadFromInput() {
   Date date;
   std::string input;
-  std::cout << "Day: ";
-  std::getline(std::cin, input);
-  date.day = std::stoi(input);
-  std::cout << "Month: ";
-  std::getline(std::cin, input);
-  date.month = std::stoi(input);
-  std::cout << "Year: ";
-  std::getline(std::cin, input);
-  date.year = std::stoi(input);
-
+  try {
+    std::cout << "Day: ";
+    std::getline(std::cin, input);
+    date.day = std::stoi(input);
+    std::cout << "Month: ";
+    std::getline(std::cin, input);
+    date.month = std::stoi(input);
+    std::cout << "Year: ";
+    std::getline(std::cin, input);
+    date.year = std::stoi(input);
+  } catch (const std::invalid_argument& e) {
+    throw BadInputException();
+  }
   if (!date.IsValid()) {
     throw InvalidDateException();
   }

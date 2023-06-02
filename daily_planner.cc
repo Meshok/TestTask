@@ -3,27 +3,31 @@
 #include <chrono>
 #include <iostream>
 
+#include "bad_input.h"
+
 namespace solution {
 
-DailyPlanner::DailyPlanner() {
-  nextEvent = events.end();
-  nextBirthday = birthdays.end();
-  auto t = std::thread(process_new_day, this);
-  t.detach();
-}
+DailyPlanner::DailyPlanner() { nextBirthday = birthdays.end(); }
 
 int DailyPlanner::exec() {
+  auto t = std::thread(&DailyPlanner::process_new_day, this);
+  t.detach();
+
   while (true) {
     std::string user_input;
     std::cout << "Enter \"add\" / \"see\" / \"exit\": ";
     std::getline(std::cin, user_input);
-    if (user_input == "add") {
-      user_add();
-      separate_output();
-    } else if (user_input == "see") {
-      user_see();
-    } else if (user_input == "exit") {
-      break;
+    try {
+      if (user_input == "add") {
+        user_add();
+        separate_output();
+      } else if (user_input == "see") {
+        user_see();
+      } else if (user_input == "exit") {
+        break;
+      }
+    } catch (const std::exception& e) {
+      std::cout << "You were returned back to main menu.\n";
     }
   }
 
@@ -37,6 +41,8 @@ void DailyPlanner::user_add() {
     std::getline(std::cin, user_input);
     if (user_input == "event") {
       auto record = Event::ReadFromInput();
+
+      std::lock_guard<std::mutex> lock_event(event_mutex);
       auto insertion_result = events.insert(record);
       if (insertion_result.second) {
         eventByExpirationDate.insert(
@@ -49,8 +55,22 @@ void DailyPlanner::user_add() {
       break;
     } else if (user_input == "birthday") {
       auto record = Birthday::ReadFromInput();
+
+      std::lock_guard<std::mutex> lock_birthday(birthday_mutex);
       auto insertion_result = birthdays.insert(record);
       if (insertion_result.second) {
+        Date today = DateTime::now();
+        auto less_or_eq = [](const Date& l, const Date& r) -> bool {
+          return std::tie(l.month, l.day) <= std::tie(r.month, r.day);
+        };
+        if ((nextBirthday == birthdays.end() &&
+             less_or_eq(today, insertion_result.first->date)) ||
+            (nextBirthday != birthdays.end() &&
+             less_or_eq(today, insertion_result.first->date) &&
+             *insertion_result.first < *nextBirthday)) {
+          nextBirthday = insertion_result.first;
+        }
+
         birthdayByName.insert(
             make_pair(record.full_name, insertion_result.first));
         birthdayByDate.insert(make_pair(record.date, insertion_result.first));
@@ -83,13 +103,32 @@ void DailyPlanner::see_event() {
   if (!events.empty()) {
     std::string user_input;
     while (true) {
-      std::cout << "Enter \"all\" / \"by date\" / \"by creation\": ";
+      std::cout
+          << "Enter \"all\" / \"today\" / \"by date\" / \"by creation\": ";
       std::getline(std::cin, user_input);
       if (user_input == "all") {
         separate_output('+');
         std::cout << "Events:\n";
+        std::lock_guard<std::mutex> lock_event(event_mutex);
         for (auto& event : events) {
           std::cout << event;
+          separate_output();
+        }
+        break;
+      } else if (user_input == "today") {
+        Date date = DateTime::now();
+        separate_output('+');
+        std::cout << "Today's events:\n";
+        std::lock_guard<std::mutex> lock_event(event_mutex);
+        auto record_count = eventByExpirationDate.count(date);
+        if (record_count > 0) {
+          auto it = eventByExpirationDate.find(date);
+          for (size_t i = 0; i < record_count; ++i, ++it) {
+            std::cout << *(it->second);
+            separate_output();
+          }
+        } else {
+          std::cout << "Today there are no events.\n";
           separate_output();
         }
         break;
@@ -101,6 +140,7 @@ void DailyPlanner::see_event() {
                   << " date:\n";
         Date date = Date::ReadFromInput();
         separate_output('+');
+        std::lock_guard<std::mutex> lock_event(event_mutex);
         auto record_count = dateMap.count(date);
         if (record_count > 0) {
           auto it = dateMap.find(date);
@@ -125,19 +165,41 @@ void DailyPlanner::see_birthday() {
   if (!birthdays.empty()) {
     std::string user_input;
     while (true) {
-      std::cout << "Enter \"all\" / \"by date\" / \"by name\": ";
+      std::cout << "Enter \"all\" / \"today\" / \"by date\" / \"by name\": ";
       std::getline(std::cin, user_input);
       if (user_input == "all") {
         separate_output('+');
         std::cout << "Birthdays:\n";
+
+        std::lock_guard<std::mutex> lock_birthday(birthday_mutex);
         for (auto& day : birthdays) {
           std::cout << day;
+          separate_output();
+        }
+        break;
+      } else if (user_input == "today") {
+        Date date = DateTime::now();
+        separate_output('+');
+        std::cout << "Today's birthdays:\n";
+        std::lock_guard<std::mutex> lock_event(birthday_mutex);
+        auto eq = [&date](const Date& other) {
+          return date.month = other.month && date.day == other.day;
+        };
+        if (nextBirthday != birthdays.end() && eq(nextBirthday->date)) {
+          for (auto it = nextBirthday; it != birthdays.end(); ++it) {
+            std::cout << *it;
+            separate_output();
+          }
+        } else {
+          std::cout << "Today there are no birthdays.\n";
           separate_output();
         }
         break;
       } else if (user_input == "by date") {
         Date date = Date::ReadFromInput();
         separate_output('+');
+
+        std::lock_guard<std::mutex> lock_birthday(birthday_mutex);
         auto record_count = birthdayByDate.count(date);
         if (record_count > 0) {
           auto it = birthdayByDate.find(date);
@@ -153,6 +215,8 @@ void DailyPlanner::see_birthday() {
       } else if (user_input == "by name") {
         FullName full_name = FullName::ReadFromInput();
         separate_output('+');
+
+        std::lock_guard<std::mutex> lock_birthday(birthday_mutex);
         auto record_count = birthdayByName.count(full_name);
         if (record_count > 0) {
           auto it = birthdayByName.find(full_name);
@@ -190,62 +254,66 @@ void DailyPlanner::process_new_day() {
       process_birthdays();
     }
     time = DateTime::now();
-
     seconds sleep_time =
-        seconds(60u * (60 * (24 - time.hours) - time.minutes) - time.seconds);
+        seconds(5ull + 60ull * (60ull * (24ull - time.hours) - time.minutes) -
+                time.seconds);
     std::this_thread::sleep_for(sleep_time);
   }
 }
 
 void DailyPlanner::process_events() {
+  std::lock_guard<std::mutex> lock_event(event_mutex);
+
   if (events.empty()) {
     return;
   }
 
-  auto current = nextEvent;
-  auto next = current;
+  auto next = events.begin();
+  auto end = next;
   Date today = DateTime::now();
-  for (; next != events.end() && next->expires < today; ++next) {
+  for (; end != events.end() && end->expires < today; ++end) {
   }
 
-  for (; current != next; ++current) {
-    size_t count = eventByCreationDate.count(current->created);
-    auto it = eventByCreationDate.find(current->created);
-    for (size_t i = 0; i < count && !(*(it->second) == *current); ++i, ++it) {
+  if (end == events.end()) {
+    events.clear();
+    eventByCreationDate.clear();
+    eventByExpirationDate.clear();
+  } else {
+    eventByExpirationDate.erase(eventByExpirationDate.begin(),
+                                eventByExpirationDate.upper_bound(today));
+    for (auto current = next++; current != end; current = next++) {
+      size_t count = eventByCreationDate.count(current->created);
+      auto it = eventByCreationDate.find(current->created);
+      for (size_t i = 0; i < count && !(*(it->second) == *current); ++i, ++it) {
+      }
+      eventByCreationDate.erase(it);
+      events.erase(current);
     }
-    eventByCreationDate.erase(it);
-    count = eventByExpirationDate.count(current->expires);
-    it = eventByExpirationDate.find(current->expires);
-    for (size_t i = 0; i < count && !(*(it->second) == *current); ++i, ++it) {
-    }
-    eventByExpirationDate.erase(it);
-    events.erase(current);
   }
-  nextEvent = next;
 }
 
 void DailyPlanner::process_birthdays() {
+  std::lock_guard<std::mutex> lock_birthday(birthday_mutex);
+
   if (birthdays.empty()) {
     return;
   }
 
-  auto next = nextBirthday;
   Date today = DateTime::now();
-  auto eq = [&today](const Date& date) -> bool {
-    return date.month == today.month && date.day == today.day;
+  auto less_or_eq = [](const Date& l, const Date& r) -> bool {
+    return std::tie(l.month, l.day) <= std::tie(r.month, r.day);
   };
-  for (; next != birthdays.end() && eq(next->date); ++next) {
-    next->age = today.year - next->date.year;
+
+  if (nextBirthday == birthdays.end() &&
+      less_or_eq(today, birthdays.begin()->date)) {
+    nextBirthday = birthdays.begin();
   }
 
-  if (next == birthdays.end()) {
-    next = birthdays.begin();
-    for (; next != nextBirthday && eq(next->date); ++next) {
-      next->age = today.year - next->date.year;
-    }
+  for (;
+       nextBirthday != birthdays.end() && less_or_eq(nextBirthday->date, today);
+       ++nextBirthday) {
+    nextBirthday->age += 1;
   }
-
-  nextBirthday = next;
 }
 
 }  // namespace solution
