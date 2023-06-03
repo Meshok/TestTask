@@ -17,10 +17,10 @@ Birthday Birthday::ReadFromInput() {
       std::cerr << "This date has not happened yet.\n";
       throw BadInputException();
     }
-  } catch (const InvalidFullNameException& e) {
+  } catch (const InvalidFullNameException&) {
     std::cerr << "Surname and name should not be empty!\n";
     throw BadInputException();
-  } catch (const InvalidDateException& e) {
+  } catch (const InvalidDateException&) {
     std::cerr << "Wrong date!\n";
     throw BadInputException();
   }

@@ -3,6 +3,7 @@
 
 #include <ctime>
 #include <iostream>
+#include <string>
 
 namespace solution {
 

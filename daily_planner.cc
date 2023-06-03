@@ -26,7 +26,7 @@ int DailyPlanner::exec() {
       } else if (user_input == "exit") {
         break;
       }
-    } catch (const std::exception& e) {
+    } catch (const std::exception&) {
       std::cout << "You were returned back to main menu.\n";
     }
   }

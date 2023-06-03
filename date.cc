@@ -50,7 +50,7 @@ Date Date::ReadFromInput() {
     std::cout << "Year: ";
     std::getline(std::cin, input);
     date.year = std::stoi(input);
-  } catch (const std::invalid_argument& e) {
+  } catch (const std::invalid_argument&) {
     throw BadInputException();
   }
   if (!date.IsValid()) {
