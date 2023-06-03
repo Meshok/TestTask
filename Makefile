@@ -5,7 +5,7 @@ BUILD_DIR=build
 SOURCES=$(wildcard $(SRC_DIR)/*.cc)
 HEADERS=$(wildcard $(SRC_DIR)/*.h)
 
-.PHONY: all build style clean
+.PHONY: all build style clean create_dir
 
 $(PROJECT_NAME): create_dir $(SOURCES) $(HEADERS)
 	$(CXX) $(SOURCES) -o $(BUILD_DIR)/$(PROJECT_NAME)

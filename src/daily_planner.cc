@@ -13,6 +13,8 @@ int DailyPlanner::exec() {
   auto t = std::thread(&DailyPlanner::process_new_day, this);
   t.detach();
 
+  greetings();
+
   while (true) {
     std::string user_input;
     std::cout << "Enter \"add\" / \"see\" / \"exit\": ";
@@ -235,6 +237,10 @@ void DailyPlanner::see_birthday() {
     std::cout << "Birthday's list is empty\n";
     separate_output();
   }
+}
+
+void DailyPlanner::greetings() {
+  std::cout << "Hello and welcome to DailyPlanner v0.8!\n";
 }
 
 void DailyPlanner::separate_output(char symbol) {

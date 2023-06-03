@@ -26,6 +26,7 @@ class DailyPlanner {
   void process_events();
   void process_birthdays();
 
+  void greetings();
   void separate_output(char symbol = '-');
 
   std::set<Event> events;
