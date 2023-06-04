@@ -17,7 +17,7 @@ template <class T>
 std::size_t read(std::istream& is, T& value) {
   const auto pos = is.tellg();
   is.read(reinterpret_cast<char*>(&value), sizeof(T));
-  return is.tellg() - pos;
+  return static_cast<std::size_t>(is.tellg() - pos);
 }
 
 template <>
@@ -29,7 +29,7 @@ std::size_t read(std::istream& is, std::string& value) {
     value.resize(len);
     is.read(value.data(), len);
   }
-  return is.tellg() - pos;
+  return static_cast<std::size_t>(is.tellg() - pos);
 }
 
 template <>
@@ -38,7 +38,7 @@ std::size_t read(std::istream& is, Date& value) {
   read(is, value.day);
   read(is, value.month);
   read(is, value.year);
-  return is.tellg() - pos;
+  return static_cast<std::size_t>(is.tellg() - pos);
 }
 
 template <>
@@ -48,7 +48,7 @@ std::size_t read(std::istream& is, DateTime& value) {
   read(is, value.hours);
   read(is, value.minutes);
   read(is, value.seconds);
-  return is.tellg() - pos;
+  return static_cast<std::size_t>(is.tellg() - pos);
 }
 
 template <>
@@ -57,7 +57,7 @@ std::size_t read(std::istream& is, FullName& value) {
   read(is, value.surname);
   read(is, value.name);
   read(is, value.patronymic);
-  return is.tellg() - pos;
+  return static_cast<std::size_t>(is.tellg() - pos);
 }
 
 template <>
@@ -66,7 +66,7 @@ std::size_t read(std::istream& is, Event& value) {
   read(is, value.created);
   read(is, value.expires);
   read(is, value.description);
-  return is.tellg() - pos;
+  return static_cast<std::size_t>(is.tellg() - pos);
 }
 
 template <>
@@ -74,7 +74,7 @@ std::size_t read(std::istream& is, Birthday& value) {
   const auto pos = is.tellg();
   read(is, value.date);
   read(is, value.full_name);
-  return is.tellg() - pos;
+  return static_cast<std::size_t>(is.tellg() - pos);
 }
 
 template <class T>
@@ -87,7 +87,7 @@ std::size_t read(std::istream& is, std::set<T>& value) {
     read(is, temp);
     value.insert(temp);
   }
-  return is.tellg() - pos;
+  return static_cast<std::size_t>(is.tellg() - pos);
 }
 
 }  // namespace solution

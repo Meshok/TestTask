@@ -30,8 +30,8 @@ class DailyPlanner {
   void save();
   void load();
 
-  void greetings();
-  void separate_output(char symbol = '-');
+  static void greetings();
+  static void separate_output(char symbol = '-');
 
   inline static const std::string app_name = "DailyPlannerV1.0";
 

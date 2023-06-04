@@ -237,8 +237,8 @@ void DailyPlanner::see_birthday() {
           }
         } else {
           std::cout << "Error: birthday not found.\n";
+          separate_output();
         }
-        separate_output();
         break;
       }
     }

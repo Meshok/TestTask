@@ -13,12 +13,14 @@ You can create and store records of two types:
   - Name  
   - Patronymic _(Optional)_
 
-
 Also you can view them:
 - all
 - by today's date
 - by date (creation/expiration/date of birthday)
 - by full name of person
+
+And you can save/load state of program.  
+**(Be careful! Loading clears the current state of the program!)**
 ### HOW TO INSTALL
 In main directory do this:
 #### Makefile

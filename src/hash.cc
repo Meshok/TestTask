@@ -1,5 +1,6 @@
 #include "hash.h"
 
+#include <climits>
 #include <cmath>
 
 namespace solution {
