@@ -26,11 +26,14 @@ class DailyPlanner {
   void process_events();
   void process_birthdays();
 
+  bool check_file(const std::string& path, std::string& buffer);
   void save();
   void load();
 
   void greetings();
   void separate_output(char symbol = '-');
+
+  inline static const std::string app_name = "DailyPlannerV1.0";
 
   std::set<Event> events;
   std::set<Birthday> birthdays;

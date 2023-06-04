@@ -3,9 +3,11 @@
 #include <chrono>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 #include "bad_input.h"
 #include "deserialize.h"
+#include "hash.h"
 #include "serialize.h"
 
 namespace solution {
@@ -329,33 +331,69 @@ void DailyPlanner::process_birthdays() {
   }
 }
 
+bool DailyPlanner::check_file(const std::string& path, std::string& buffer) {
+  std::ifstream is(path);
+  if (is.is_open()) {
+    is.seekg(0, std::ios::end);
+    size_t end_pos = is.tellg();
+    is.seekg(0, std::ios::beg);
+    size_t sz = end_pos - is.tellg();
+    if (sz < 32) {
+      return false;
+    }
+    std::string hash(16, '\0');
+    std::string app_name_(16, '\0');
+    is.read(hash.data(), hash.size());
+    is.read(app_name_.data(), app_name_.size());
+    if (app_name == app_name_) {
+      buffer.resize(end_pos - is.tellg());
+      is.read(buffer.data(), buffer.size());
+      return hash == hash_sum(buffer);
+    } else {
+      return false;
+    }
+  }
+  return true;
+}
+
 void DailyPlanner::save() {
   std::cout << "Enter the file name to save the state: ";
   std::string user_input;
   std::getline(std::cin, user_input);
-  auto os = std::ofstream(user_input);
-  if (os.is_open()) {
-    {
-      std::lock_guard<std::mutex> event_lock(event_mutex);
-      write(os, events);
+  std::string buffer;
+  if (check_file(user_input, buffer)) {
+    auto os = std::ofstream(user_input);
+    if (os.is_open()) {
+      std::ostringstream oss;
+      {
+        std::lock_guard<std::mutex> event_lock(event_mutex);
+        write(oss, events);
+      }
+      {
+        std::lock_guard<std::mutex> birthday_lock(birthday_mutex);
+        write(oss, birthdays);
+      }
+      buffer = oss.str();
+      std::string hash = hash_sum(buffer);
+      os.write(hash.data(), hash.size());
+      os.write(app_name.data(), app_name.size());
+      os.write(buffer.data(), buffer.size());
+      return;
     }
-    {
-      std::lock_guard<std::mutex> birthday_lock(birthday_mutex);
-      write(os, birthdays);
-    }
-  } else {
-    std::cerr << "File \"" << user_input << "\" cannot be opened.\n";
-    std::cout << "The save has been canceled.\n";
   }
+
+  std::cerr << "File \"" << user_input
+            << "\" cannot be opened or is not valid.\n";
+  std::cout << "The save has been canceled.\n";
 }
 
 void DailyPlanner::load() {
-  std::cout << "Enter the file name to load the state (make "
-               "sure you have entered the correct file): ";
+  std::cout << "Enter the file name to load the state: ";
   std::string user_input;
   std::getline(std::cin, user_input);
-  auto is = std::ifstream(user_input);
-  if (is.is_open()) {
+  std::string buffer;
+  if (check_file(user_input, buffer) && buffer.size() > 0) {
+    std::istringstream is(buffer);
     Date today = DateTime::now();
 
     decltype(events) events_;
@@ -410,7 +448,8 @@ void DailyPlanner::load() {
     }
     std::cout << "The load has been successful.\n";
   } else {
-    std::cerr << "File \"" << user_input << "\" cannot be opened.\n";
+    std::cerr << "File \"" << user_input
+              << "\" cannot be opened or is not valid.\n";
     std::cout << "The load has been canceled.\n";
   }
 }
