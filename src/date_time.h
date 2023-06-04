@@ -1,5 +1,5 @@
-#ifndef DATE_TIME_H
-#define DATE_TIME_H
+#ifndef DAILY_PLANNER_DATE_TIME_H
+#define DAILY_PLANNER_DATE_TIME_H
 
 #include "date.h"
 
@@ -35,4 +35,4 @@ std::ostream& operator<<(std::ostream& os, const DateTime& date);
 
 }  // namespace solution
 
-#endif  // DATE_TIME_H
+#endif  // DAILY_PLANNER_DATE_TIME_H

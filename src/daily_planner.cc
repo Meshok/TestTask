@@ -1,9 +1,12 @@
 #include "daily_planner.h"
 
 #include <chrono>
+#include <fstream>
 #include <iostream>
 
 #include "bad_input.h"
+#include "deserialize.h"
+#include "serialize.h"
 
 namespace solution {
 
@@ -17,7 +20,7 @@ int DailyPlanner::exec() {
 
   while (true) {
     std::string user_input;
-    std::cout << "Enter \"add\" / \"see\" / \"exit\": ";
+    std::cout << "Enter \"add\" / \"see\" / \"save\" / \"load\" / \"exit\": ";
     std::getline(std::cin, user_input);
     try {
       if (user_input == "add") {
@@ -25,6 +28,10 @@ int DailyPlanner::exec() {
         separate_output();
       } else if (user_input == "see") {
         user_see();
+      } else if (user_input == "save") {
+        save();
+      } else if (user_input == "load") {
+        load();
       } else if (user_input == "exit") {
         break;
       }
@@ -240,7 +247,7 @@ void DailyPlanner::see_birthday() {
 }
 
 void DailyPlanner::greetings() {
-  std::cout << "Hello and welcome to DailyPlanner v0.8!\n";
+  std::cout << "Hello and welcome to DailyPlanner v1.0!\n";
 }
 
 void DailyPlanner::separate_output(char symbol) {
@@ -319,6 +326,92 @@ void DailyPlanner::process_birthdays() {
        nextBirthday != birthdays.end() && less_or_eq(nextBirthday->date, today);
        ++nextBirthday) {
     nextBirthday->age += 1;
+  }
+}
+
+void DailyPlanner::save() {
+  std::cout << "Enter the file name to save the state: ";
+  std::string user_input;
+  std::getline(std::cin, user_input);
+  auto os = std::ofstream(user_input);
+  if (os.is_open()) {
+    {
+      std::lock_guard<std::mutex> event_lock(event_mutex);
+      write(os, events);
+    }
+    {
+      std::lock_guard<std::mutex> birthday_lock(birthday_mutex);
+      write(os, birthdays);
+    }
+  } else {
+    std::cerr << "File \"" << user_input << "\" cannot be opened.\n";
+    std::cout << "The save has been canceled.\n";
+  }
+}
+
+void DailyPlanner::load() {
+  std::cout << "Enter the file name to load the state (make "
+               "sure you have entered the correct file): ";
+  std::string user_input;
+  std::getline(std::cin, user_input);
+  auto is = std::ifstream(user_input);
+  if (is.is_open()) {
+    Date today = DateTime::now();
+
+    decltype(events) events_;
+    decltype(eventByCreationDate) eventByCreationDate_;
+    decltype(eventByExpirationDate) eventByExpirationDate_;
+    decltype(birthdays) birthdays_;
+    decltype(birthdayByDate) birthdayByDate_;
+    decltype(birthdayByName) birthdayByName_;
+    read(is, events_);
+    read(is, birthdays_);
+
+    auto exp = events_.begin();
+    while (exp != events_.end() && exp->expires < today) {
+      ++exp;
+    }
+    events_.erase(events_.begin(), exp);
+    for (auto it = events_.begin(); it != events_.end(); ++it) {
+      eventByCreationDate_.insert(
+          make_pair(static_cast<Date>(it->created), it));
+      eventByExpirationDate_.insert(make_pair(it->expires, it));
+    }
+
+    auto greater = [&today](const Date& d) {
+      return std::tie(d.month, d.day) > std::tie(today.month, today.day);
+    };
+    nextBirthday = birthdays_.end();
+    for (auto it = birthdays_.begin(); it != birthdays_.end(); ++it) {
+      if (nextBirthday == birthdays_.end() && greater(it->date)) {
+        nextBirthday = it;
+      }
+      int age = today.year - it->date.year;
+      if (std::tie(today.month, today.day) <
+          std::tie(it->date.month, it->date.day)) {
+        age -= 1;
+      }
+      it->age = age;
+      birthdayByDate_.insert(make_pair(it->date, it));
+      birthdayByName_.insert(make_pair(it->full_name, it));
+    }
+
+    {
+      std::lock_guard<std::mutex> event_lock(event_mutex);
+      events = std::move(events_);
+      eventByCreationDate = std::move(eventByCreationDate_);
+      eventByExpirationDate = std::move(eventByExpirationDate_);
+    }
+    {
+      std::lock_guard<std::mutex> birthday_lock(birthday_mutex);
+      birthdays = std::move(birthdays_);
+      birthdayByDate = std::move(birthdayByDate_);
+      birthdayByName = std::move(birthdayByName_);
+    }
+    std::cout << "The load has been successful.\n";
+  } else {
+    std::cerr << "File \"" << user_input << "\" cannot be opened.\n";
+    std::cout << "The load has been canceled.\n";
   }
 }
 

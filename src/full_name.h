@@ -1,5 +1,5 @@
-#ifndef FULL_NAME_H
-#define FULL_NAME_H
+#ifndef DAILY_PLANNER_FULL_NAME_H
+#define DAILY_PLANNER_FULL_NAME_H
 
 #include <iostream>
 #include <string>
@@ -27,4 +27,4 @@ class InvalidFullNameException : public std::exception {
 
 }  // namespace solution
 
-#endif  // FULL_NAME_H
+#endif  // DAILY_PLANNER_FULL_NAME_H

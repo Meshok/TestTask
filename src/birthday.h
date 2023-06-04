@@ -1,5 +1,5 @@
-#ifndef BIRTHDAY_H
-#define BIRTHDAY_H
+#ifndef DAILY_PLANNER_BIRTHDAY_H
+#define DAILY_PLANNER_BIRTHDAY_H
 
 #include <iostream>
 #include <string>
@@ -24,4 +24,4 @@ std::ostream& operator<<(std::ostream& os, const Birthday& birthday);
 
 }  // namespace solution
 
-#endif  // BIRTHDAY_H
+#endif  // DAILY_PLANNER_BIRTHDAY_H

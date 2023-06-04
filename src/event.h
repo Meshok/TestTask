@@ -1,5 +1,5 @@
-#ifndef EVENT_H
-#define EVENT_H
+#ifndef DAILY_PLANNER_EVENT_H
+#define DAILY_PLANNER_EVENT_H
 
 #include <string>
 
@@ -8,6 +8,7 @@
 namespace solution {
 struct Event {
  public:
+  Event() = default;
   Event(Date& expires_, std::string& description_)
       : created(DateTime::now()),
         expires(expires_),
@@ -27,4 +28,4 @@ std::ostream& operator<<(std::ostream& os, const Event& event);
 
 }  // namespace solution
 
-#endif  // EVENT_H
+#endif  // DAILY_PLANNER_EVENT_H

@@ -26,6 +26,9 @@ class DailyPlanner {
   void process_events();
   void process_birthdays();
 
+  void save();
+  void load();
+
   void greetings();
   void separate_output(char symbol = '-');
 
